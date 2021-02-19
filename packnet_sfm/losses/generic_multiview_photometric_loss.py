@@ -13,6 +13,8 @@ from packnet_sfm.geometry.camera_utils import view_synthesis_generic
 from packnet_sfm.utils.depth import calc_smoothness, inv2depth
 from packnet_sfm.losses.loss_base import LossBase, ProgressiveScaling
 
+import pdb
+
 ########################################################################################################################
 
 
@@ -144,8 +146,9 @@ class GenericMultiViewPhotometricLoss(LossBase):
         self.progressive_scaling = ProgressiveScaling(
             progressive_scaling, self.n)
         self.canonical_ray_surface = torch.tensor(
-            #np.load("kitti_ray_template.npy"))
-            np.load("omnicam_ray_template.npy"))
+            np.load("blackvue_ray_template.npy"))
+            # np.load("kitti_ray_template.npy"))
+            # np.load("omnicam_ray_template.npy"))
 
         # Asserts
         if self.automask_loss:
@@ -170,9 +173,11 @@ class GenericMultiViewPhotometricLoss(LossBase):
         Parameters
         ----------
         inv_depths : torch.Tensor [B,1,H,W]
-            Inverse depth map of the original image
+            Inverse depth map of the original images
         ref_image : torch.Tensor [B,3,H,W]
             Reference RGB image
+        raysurf_residual: torch.Tensor [B,3,H,W]
+            Predicted ray surface of original images
         K : torch.Tensor [B,3,3]
             Original camera intrinsics
         ref_K : torch.Tensor [B,3,3]
@@ -189,6 +194,7 @@ class GenericMultiViewPhotometricLoss(LossBase):
         device = ref_image.get_device()
         # Generate cameras for all scales
 
+        # pdb.set_trace()
         coeff = np.min([((100.0*progress)**(4/3.) / 100.), 1.])
         Rmat = self.canonical_ray_surface.to(device) + coeff*raysurf_residual
         Rmat = Rmat / torch.norm(Rmat, dim=1, keepdim=True)
@@ -256,16 +262,14 @@ class GenericMultiViewPhotometricLoss(LossBase):
                          for i in range(self.n)]
             # Weighted Sum: alpha * ssim + (1 - alpha) * l1
             photometric_loss = [self.ssim_loss_weight * ssim_loss[i].mean(1, True) +
-                                (1 - self.ssim_loss_weight) *
-                                l1_loss[i].mean(1, True)
+                                (1 - self.ssim_loss_weight) * l1_loss[i].mean(1, True)
                                 for i in range(self.n)]
         else:
             photometric_loss = l1_loss
         # Clip loss
         if self.clip_loss > 0.0:
             for i in range(self.n):
-                mean, std = photometric_loss[i].mean(
-                ), photometric_loss[i].std()
+                mean, std = photometric_loss[i].mean(), photometric_loss[i].std()
                 photometric_loss[i] = torch.clamp(
                     photometric_loss[i], max=float(mean + self.clip_loss * std))
         # Return total photometric loss
@@ -320,8 +324,7 @@ class GenericMultiViewPhotometricLoss(LossBase):
             Smoothness loss
         """
         # Calculate smoothness gradients
-        smoothness_x, smoothness_y = calc_smoothness(
-            inv_depths, images, self.n)
+        smoothness_x, smoothness_y = calc_smoothness(inv_depths, images, self.n)
         # Calculate smoothness loss
         smoothness_loss = sum([(smoothness_x[i].abs().mean() +
                                 smoothness_y[i].abs().mean()) / 2 ** i
@@ -345,14 +348,17 @@ class GenericMultiViewPhotometricLoss(LossBase):
             Original image
         context : list of torch.Tensor [B,3,H,W]
             Context containing a list of reference images
+            List of len context, ie len([n-1, n+1]) = 2
         inv_depths : list of torch.Tensor [B,1,H,W]
             Predicted depth maps for the original image, in all scales
         ray_surface : list of torch.Tensor [B,1,H,W]
-            Predicted depth maps for the original image, in all scales
+            Predicted ray surface for the original image
         K : torch.Tensor [B,3,3]
             Original camera intrinsics
+            I think this is just here to match the params of standard multiview loss?
         ref_K : torch.Tensor [B,3,3]
             Reference camera intrinsics
+            I think this is just here to match the params of standard multiview loss?
         poses : list of Pose
             Camera transformation between original and context
         return_logs : bool
@@ -371,12 +377,15 @@ class GenericMultiViewPhotometricLoss(LossBase):
         photometric_losses = [[] for _ in range(self.n)]
         images = match_scales(image, inv_depths, self.n)
 
+        pdb.set_trace()
+
         for j, (ref_image, pose) in enumerate(zip(context, poses)):
             # Calculate warped images
             ref_warped = self.warp_ref_image(
                 inv_depths, ref_image, ray_surface[('raysurf', 0)], pose, progress=progress)
             # Calculate and store image loss
             photometric_loss = self.calc_photometric_loss(ref_warped, images)
+            # pdb.set_trace()
             for i in range(self.n):
                 photometric_losses[i].append(photometric_loss[i])
             # If using automask
