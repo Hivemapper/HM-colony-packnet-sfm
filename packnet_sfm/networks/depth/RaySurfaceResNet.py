@@ -59,5 +59,12 @@ class RaySurfaceResNet(nn.Module):
             return [self.scale_inv_depth(d)[0] for d in disps], r
         else:
             return self.scale_inv_depth(disps[0])[0], r
+    
+    def trace_forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        disps = [x[('disp', i)] for i in range(4)]
+
+        return self.scale_inv_depth(disps[0])[0] 
 
 ########################################################################################################################

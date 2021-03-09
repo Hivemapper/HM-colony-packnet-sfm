@@ -5,7 +5,6 @@ from packnet_sfm.losses.generic_multiview_photometric_loss import GenericMultiVi
 from packnet_sfm.models.model_utils import merge_outputs
 import numpy as np
 
-
 class GenericSelfSupModel(GenericSfmModel):
     """
     Model that inherits a depth and pose network from GenericSfmModel and

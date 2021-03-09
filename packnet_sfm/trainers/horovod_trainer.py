@@ -8,6 +8,7 @@ from packnet_sfm.utils.config import prep_logger_and_checkpoint
 from packnet_sfm.utils.logging import print_config
 from packnet_sfm.utils.logging import AvgMeter
 
+import pdb
 
 class HorovodTrainer(BaseTrainer):
     def __init__(self, **kwargs):
@@ -77,6 +78,7 @@ class HorovodTrainer(BaseTrainer):
         # Start training loop
         outputs = []
         # For all batches
+        # pdb.set_trace()
         for i, batch in progress_bar:
             # Reset optimizer
             optimizer.zero_grad()
