@@ -12,10 +12,10 @@ from packnet_sfm.utils.image import load_image
 ########################################################################################################################
 
 def dummy_calibration(image):
-    w, h = [float(d) for d in image.size]
-    return np.array([[1000. , 0.    , w / 2. - 0.5],
-                     [0.    , 1000. , h / 2. - 0.5],
-                     [0.    , 0.    , 1.          ]])
+    # w, h = [float(d) for d in image.size]
+    return np.array([[504.3 , 0.    , 544.],
+                     [0.    , 504.3 , 306.],
+                     [0.    , 0.    , 1.  ]])
 
 def get_idx(filename):
     return int(re.search(r'\d+', filename).group())

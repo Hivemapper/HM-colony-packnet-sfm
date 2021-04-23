@@ -1,0 +1,61 @@
+checkpoint:
+    filepath: '/data/datasets/blackvue/New_Orleans/images/checkpoints'
+    save_top_k: -1
+wandb:
+    dry_run: False
+    name: 'blackvue-big-set-test-3'
+    project: 'blackvue-nrs-test'
+    entity: 'adriscoll319'
+    dir: '/data/datasets/blackvue/New_Orleans/images'
+    tags: ['50k', 'cropped', 'New Orleans', 'batch 1', 'repeat 1']
+arch:
+    max_epochs: 40
+model:
+    name: 'GenericSelfSupModel'
+    # checkpoint_path: /data/datasets/blackvue/cropped/checkpoints/blackvue-batch2-test-3/epoch19.ckpt
+    optimizer:
+        name: 'Adam'
+        depth:
+            lr: 0.0002
+        pose:
+            lr: 0.0002
+    scheduler:
+        name: 'StepLR'
+        step_size: 30
+        gamma: 0.5
+    depth_net:
+        name: 'RaySurfaceResNet'
+        version: '18pt'
+    pose_net:
+        name: 'PoseResNet'
+        version: '18pt'
+        # name: 'PoseNet'
+        # version: ''
+    params:
+        crop: 'garg'
+        min_depth: 0.0
+        max_depth: 80.0
+datasets:
+    augmentation:
+    # (192, 416) cropped from (234, 416) is the max image size that won't result in 
+    # oom on 16GB gpu, batch size 1
+        image_shape: (192, 416)
+        # image_shape: (160, 352)
+    train:
+        batch_size: 1
+        dataset: ['Image']
+        path: ['/data/datasets/blackvue/New_Orleans/images/train']
+        # path: ['/data/datasets/blackvue/New_Orleans/images/test']
+        split: ['{:06}']
+        depth_type: ['']
+        repeat: [1]
+    validation:
+        dataset: ['Image']
+        path: ['/data/datasets/blackvue/New_Orleans/images/val']
+        split: ['{:06}']
+        depth_type: ['']
+    # test:
+    #     dataset: ['KITTI']
+    #     path: ['/data/datasets/KITTI_tiny']
+    #     split: ['kitti_tiny.txt']
+    #     depth_type: ['velodyne']

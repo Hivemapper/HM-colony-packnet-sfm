@@ -1,0 +1,63 @@
+checkpoint:
+    filepath: '/data/datasets/blackvue/New_Orleans/set2/images/packnet_logs/checkpoints'
+    save_top_k: -1
+wandb:
+    dry_run: False
+    name: 'blackvue-continuation-test-2'
+    project: 'blackvue-packnet-test'
+    entity: 'adriscoll319'
+    dir: '/data/datasets/blackvue/New_Orleans/set2/images/packnet_logs'
+    tags: ['new images', 'cropped', 'New Orleans', 'batch 1', 'repeat 1', "step size 10"]
+# arch:
+    # max_epochs: 30
+model:
+    name: 'SelfSupModel'
+    checkpoint_path: '/data/datasets/blackvue/New_Orleans/set1/images/packnet_logs/checkpoints/blackvue-packnet-big-test-2/blackvue-packnet-e30.ckpt'
+    optimizer:
+        name: 'Adam'
+        depth:
+            lr: 0.0002
+        pose:
+            lr: 0.0002
+    scheduler:
+        name: 'StepLR'
+        step_size: 10
+        gamma: 0.5
+    depth_net:
+        name: 'PackNet01'
+        version: '1A'
+    pose_net:
+        # name: 'PoseResNet'
+        # version: '18pt'
+        name: 'PoseNet'
+        version: ''
+    params:
+        crop: 'garg'
+        min_depth: 0.0
+        max_depth: 80.0
+datasets:
+    augmentation:
+    # (480, 1088) cropped from (612, 1088) is the max image size that won't result in 
+    # oom on 16GB gpu, batch size 1
+        image_shape: (480, 1088)
+    train:
+        # true batch size is 'batch_size' * number of gpus
+        batch_size: 1
+        dataset: ['Image']
+        path: ['/data/datasets/blackvue/New_Orleans/set2/images/train']
+        # path: ['/data/datasets/blackvue/New_Orleans/images/test']
+        split: ['{:06}']
+        depth_type: ['']
+        repeat: [1]
+    validation:
+        dataset: ['Image']
+        path: ['/data/datasets/blackvue/New_Orleans/set2/images/val']
+        # path: ['/data/datasets/blackvue/New_Orleans/images/test']
+        split: ['{:06}']
+        depth_type: ['']
+    # test:
+    #     dataset: ['KITTI']
+    #     path: ['/data/datasets/KITTI_tiny']
+    #     split: ['kitti_tiny.txt']
+    #     depth_type: ['velodyne']
+
