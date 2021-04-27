@@ -52,7 +52,8 @@ To split the data into training, validation:
 Confirm that your config yaml is setup appropriately
 Confirm that `packnet_sfm/datasets/image_dataset.py` has the correct intrinsics
 
-from home dir run `./runMe.sh` to enter docker
+If needed, copy `packnet-sfm/runMe.sh` to your home dir
+From home dir run `./runMe.sh` to enter docker
 run:
   `train.py configs/[your_config_file.yaml]`
   
